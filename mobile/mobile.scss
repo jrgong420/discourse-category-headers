@@ -3,8 +3,9 @@
     text-align: center;
   }
 
-  .category-header-widget .category-logo.aspect-image,
-  .category-header-widget .category-logo.aspect-image > img {
+  .category-header-widget .category-logo,
+  .category-header-widget .category-logo > img,
+  .category-header-widget .category-logo .category-logo-img {
     float: none;
     max-width: 100%;
     margin: 0 0 0.25em 0;
