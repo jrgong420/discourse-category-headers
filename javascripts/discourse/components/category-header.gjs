@@ -5,7 +5,6 @@ import { htmlSafe } from "@ember/template";
 
 import { ajax } from "discourse/lib/ajax";
 import icon from "discourse/helpers/d-icon";
-import cdnImg from "discourse/helpers/cdn-img";
 
 import { not } from "truth-helpers";
 
@@ -64,6 +63,34 @@ export default class CategoryHeader extends Component {
     } else {
       return false;
     }
+  }
+
+  get logoWidth() {
+    if (settings.show_category_logo && this.args.category.uploaded_logo) {
+      return this.args.category.uploaded_logo.width;
+    } else if (
+      settings.show_category_logo &&
+      settings.show_parent_category_logo &&
+      this.args.category.parentCategory &&
+      this.args.category.parentCategory.uploaded_logo
+    ) {
+      return this.args.category.parentCategory.uploaded_logo.width;
+    }
+    return null;
+  }
+
+  get logoHeight() {
+    if (settings.show_category_logo && this.args.category.uploaded_logo) {
+      return this.args.category.uploaded_logo.height;
+    } else if (
+      settings.show_category_logo &&
+      settings.show_parent_category_logo &&
+      this.args.category.parentCategory &&
+      this.args.category.parentCategory.uploaded_logo
+    ) {
+      return this.args.category.parentCategory.uploaded_logo.height;
+    }
+    return null;
   }
 
   get ifParentProtected() {
@@ -174,7 +201,7 @@ export default class CategoryHeader extends Component {
         <div class="category-title-contents">
           {{#if this.logoImg}}
             <div class="category-logo">
-              {{cdn-img src=this.logoImg class="category-logo-img"}}
+              <img src={{this.logoImg}} class="category-logo-img" width={{this.logoWidth}} height={{this.logoHeight}} />
             </div>
           {{/if}}
           <div class="category-title-name" style={{if (not (this.logoImg)) "padding: 0 !important;"}}>
