@@ -5,7 +5,7 @@ import { htmlSafe } from "@ember/template";
 
 import { ajax } from "discourse/lib/ajax";
 import icon from "discourse/helpers/d-icon";
-import cdnImg from "discourse/helpers/cdn-img";
+import LightDarkImg from "discourse/components/light-dark-img";
 
 import { not } from "truth-helpers";
 
@@ -65,6 +65,45 @@ export default class CategoryHeader extends Component {
       return false;
     }
   }
+
+  get logoUpload() {
+    if (settings.show_category_logo && this.args.category.uploaded_logo) {
+      return this.args.category.uploaded_logo;
+    } else if (
+      settings.show_category_logo &&
+      settings.show_parent_category_logo &&
+      this.args.category.parentCategory &&
+      this.args.category.parentCategory.uploaded_logo
+    ) {
+      return this.args.category.parentCategory.uploaded_logo;
+    } else {
+      return null;
+    }
+  }
+
+  get logoUploadDark() {
+    if (settings.show_category_logo && this.args.category.uploaded_logo_dark) {
+      return this.args.category.uploaded_logo_dark;
+    } else if (
+      settings.show_category_logo &&
+      settings.show_parent_category_logo &&
+      this.args.category.parentCategory &&
+      this.args.category.parentCategory.uploaded_logo_dark
+    ) {
+      return this.args.category.parentCategory.uploaded_logo_dark;
+    } else {
+      return null;
+    }
+  }
+
+  get siteLogoUrl() {
+    if (settings.show_site_logo && this.siteSettings.logo_small) {
+      return this.siteSettings.logo_small;
+    } else {
+      return null;
+    }
+  }
+
 
   get ifParentProtected() {
     if (
@@ -172,9 +211,13 @@ export default class CategoryHeader extends Component {
         style={{this.getHeaderStyle}}
       >
         <div class="category-title-contents">
-          {{#if this.logoImg}}
+          {{#if this.logoUpload}}
+            <div class="category-logo aspect-image">
+              <LightDarkImg @lightImg={{this.logoUpload}} @darkImg={{this.logoUploadDark}} class="category-logo-img" />
+            </div>
+          {{else if this.siteLogoUrl}}
             <div class="category-logo">
-              {{cdn-img src=this.logoImg class="category-logo-img"}}
+              <img src={{this.siteLogoUrl}} class="category-logo-img" />
             </div>
           {{/if}}
           <div class="category-title-name" style={{if (not (this.logoImg)) "padding: 0 !important;"}}>
