@@ -10,13 +10,20 @@ div[class^="category-title-header"] {
   width: 100%;
   justify-content: center;
   overflow: hidden;
-  border: 2px solid rgb(232.9, 232.9, 232.9);
 
   @if $header_style == "box" {
-    border: 2px solid $primary_low;
+    border: 2px solid var(--primary-low);
+    border-left: 6px solid var(--category-color, var(--primary-medium));
+  } @else if $header_style == "banner" {
+    border: 0 !important;
+    background-color: var(--category-color, var(--primary-low));
+    color: var(--category-text-color, var(--primary));
   } @else {
     border: 0 !important; // Stylelint complains if 0px is used
   }
+
+  // Background image from CSS variable
+  background-image: var(--category-bg-image, none);
 
   @if $header_background_image == "cover" {
     background-size: cover;
@@ -24,16 +31,24 @@ div[class^="category-title-header"] {
     background-size: contain;
   } @else if $header_background_image == "resize" {
     background-size: 100% 100%;
-  } @else {
-    background-image: none;
   }
 
   .category-title-contents {
     padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+
+    @if $position_logo == "top" {
+      flex-direction: column;
+      align-items: center;
+    }
   }
 
   .category-title-name {
-    padding: 0 20px 0;
+    flex: 1 1 auto;
+    min-width: 0; // Allow text truncation if needed
 
     @if $show_category_name == "false" {
       display: none;
@@ -56,6 +71,7 @@ div[class^="category-title-header"] {
   }
 
   .category-title-description {
+    flex: 1 1 100%;
     padding-top: 0.5em;
 
     @if $description_text_size == "smallest" {
@@ -108,19 +124,31 @@ div[class^="category-title-header"] {
   }
 }
 
-.category-title-contents .category-logo.aspect-image,
-.category-title-contents .category-logo.aspect-image > img {
+// Logo container - flexbox handles positioning
+.category-title-contents .category-logo.aspect-image {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+
   @if $position_logo == "top" {
-    float: none;
-    max-width: 100%;
-    margin: 0 0 0.25em 0;
+    // Flex-direction: column on parent handles this
+    margin: 0;
   } @else if $position_logo == "left" {
-    float: $position_logo;
-    margin: 0 0.5em 0.25em 0;
+    order: -1; // Place before title
+    margin: 0;
   } @else if $position_logo == "right" {
-    float: $position_logo;
-    margin: 0 0 0.25em 0.5em;
+    order: 1; // Place after title (if title has order: 0)
+    margin: 0;
   }
+}
+
+// Logo image - constrain size only on the img element
+.category-title-contents .category-logo.aspect-image > img {
+  display: block;
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
 
   @if $size_logo == "standard" {
     max-height: 150px;
@@ -129,13 +157,6 @@ div[class^="category-title-header"] {
   } @else {
     max-height: 2000px;
   }
-}
-
-.category-title-contents .category-logo.aspect-image > img {
-  // width: calc(var($max-height)*var($aspect-ratio));
-  height: auto;
-  width: auto;
-  display: inline-block;
 }
 
 // Update the category-about-url rules

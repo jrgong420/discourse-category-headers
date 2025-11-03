@@ -9,6 +9,9 @@ import LightDarkImg from "discourse/components/light-dark-img";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 
+// Cache for full category descriptions (keyed by category ID)
+const descriptionCache = new Map();
+
 export default class CategoryHeader extends Component {
   @service siteSettings;
   @service site;
@@ -16,10 +19,14 @@ export default class CategoryHeader extends Component {
 
   @tracked full_cat_desc;
   @tracked isCatDescExpanded = false;
+  @tracked isLoadingFullDesc = false;
 
   constructor() {
     super(...arguments);
-    this.getFullCatDesc();
+    // Only fetch if show_full_category_description is enabled
+    if (settings.show_full_category_description) {
+      this.getFullCatDesc();
+    }
     this._onPageChanged = this._onPageChanged.bind(this);
     this.router.on("routeDidChange", this._onPageChanged);
   }
@@ -31,15 +38,12 @@ export default class CategoryHeader extends Component {
 
   // eslint-disable-next-line no-unused-vars
   async _onPageChanged(transition) {
-    // Make descriptions collapsed
+    // Make descriptions collapsed on route change
     this.isCatDescExpanded = false;
 
-    try {
-      let cd = await ajax(`${this.args.category.topic_url}.json`);
-      this.full_cat_desc = cd.post_stream.posts[0].cooked;
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
+    // Only fetch if show_full_category_description is enabled
+    if (settings.show_full_category_description) {
+      await this.getFullCatDesc();
     }
   }
 
@@ -60,12 +64,37 @@ export default class CategoryHeader extends Component {
   }
 
   async getFullCatDesc() {
+    if (!this.args.category?.topic_url) {
+      return;
+    }
+
+    const categoryId = this.args.category.id;
+
+    // Check cache first
+    if (descriptionCache.has(categoryId)) {
+      this.full_cat_desc = descriptionCache.get(categoryId);
+      return;
+    }
+
+    // Prevent duplicate requests
+    if (this.isLoadingFullDesc) {
+      return;
+    }
+
+    this.isLoadingFullDesc = true;
+
     try {
-      let cd = await ajax(`${this.args.category.topic_url}.json`);
-      this.full_cat_desc = cd.post_stream.posts[0].cooked;
+      const cd = await ajax(`${this.args.category.topic_url}.json`);
+      const fullDesc = cd.post_stream.posts[0].cooked;
+
+      // Cache the result
+      descriptionCache.set(categoryId, fullDesc);
+      this.full_cat_desc = fullDesc;
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error(e);
+      console.error("Failed to load full category description:", e);
+    } finally {
+      this.isLoadingFullDesc = false;
     }
   }
 
@@ -148,59 +177,53 @@ export default class CategoryHeader extends Component {
     const hideMobile = !settings.show_mobile && this.site.mobileView;
     const subCat =
       !settings.show_subcategory_header && this.args.category.parentCategory;
-    const noDesc =
-      !settings.hide_if_no_category_description &&
+    // Fixed: Correct logic for hiding when description is missing
+    const hideNoDesc =
+      settings.hide_if_no_category_description &&
       !this.args.category.description_text;
-    const path = window.location.pathname;
+    const path = this.router.currentURL || window.location.pathname;
     return (
-      /^\/c\//.test(path) && !isException && !noDesc && !subCat && !hideMobile
+      /^\/c\//.test(path) &&
+      !isException &&
+      !hideNoDesc &&
+      !subCat &&
+      !hideMobile
     );
   }
 
   get getHeaderStyle() {
-    let headerStyle = "";
-    if (settings.header_style === "box") {
-      headerStyle +=
-        "border-left: 6px solid #" + this.args.category.color + ";";
+    const styles = [];
+
+    // Set CSS custom properties for dynamic values
+    if (this.args.category.color) {
+      styles.push(`--category-color: #${this.args.category.color}`);
     }
-    if (settings.header_style === "banner") {
-      headerStyle +=
-        "background-color: #" +
-        this.args.category.color +
-        "; color: #" +
-        this.args.category.text_color +
-        ";";
+    if (this.args.category.text_color) {
+      styles.push(`--category-text-color: #${this.args.category.text_color}`);
     }
-    if (settings.show_parent_category_background_image) {
-      if (this.args.category.parentCategory) {
+
+    // Background image handling
+    let bgImageUrl = null;
+    if (settings.header_background_image !== "outside") {
+      if (settings.show_parent_category_background_image) {
         if (
-          settings.header_background_image !== "outside" &&
-          this.args.category.parentCategory.uploaded_background
+          this.args.category.parentCategory?.uploaded_background?.url
         ) {
-          headerStyle +=
-            "background-image: url(" +
-            this.args.category.parentCategory.uploaded_background.url +
-            ");";
+          bgImageUrl =
+            this.args.category.parentCategory.uploaded_background.url;
+        } else if (this.args.category.uploaded_background?.url) {
+          bgImageUrl = this.args.category.uploaded_background.url;
         }
-      } else if (this.args.category.uploaded_background) {
-        if (settings.header_background_image !== "outside") {
-          headerStyle +=
-            "background-image: url(" +
-            this.args.category.uploaded_background.url +
-            ");";
-        }
-      }
-    } else {
-      if (this.args.category.uploaded_background) {
-        if (settings.header_background_image !== "outside") {
-          headerStyle +=
-            "background-image: url(" +
-            this.args.category.uploaded_background.url +
-            ");";
-        }
+      } else if (this.args.category.uploaded_background?.url) {
+        bgImageUrl = this.args.category.uploaded_background.url;
       }
     }
-    return headerStyle + " display: block; margin-bottom: 1em;";
+
+    if (bgImageUrl) {
+      styles.push(`--category-bg-image: url(${bgImageUrl})`);
+    }
+
+    return styles.length > 0 ? htmlSafe(styles.join("; ")) : null;
   }
 
   get aboutTopicUrl() {
@@ -222,9 +245,25 @@ export default class CategoryHeader extends Component {
   }
 
   @action
-  async expandCategoryDescription() {
+  async expandCategoryDescription(event) {
     if (settings.expand_and_collapse_category_description) {
+      event?.preventDefault?.();
+
+      // If expanding and we don't have the full description yet, fetch it
+      if (!this.isCatDescExpanded && !this.full_cat_desc) {
+        await this.getFullCatDesc();
+      }
+
       this.isCatDescExpanded = !this.isCatDescExpanded;
+    }
+  }
+
+  @action
+  handleToggleKeydown(event) {
+    // Support Enter and Space for keyboard accessibility
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      this.expandCategoryDescription(event);
     }
   }
 
@@ -263,7 +302,10 @@ export default class CategoryHeader extends Component {
 
           <div class="category-title-description">
             {{#if (or this.showCatDesc this.showFullCatDesc)}}
-              <div class="cooked">
+              <div
+                class="cooked"
+                id="category-description-{{@category.id}}"
+              >
                 {{#if this.showFullCatDesc}}
                   {{htmlSafe this.full_cat_desc}}
                 {{else}}
@@ -285,7 +327,12 @@ export default class CategoryHeader extends Component {
                     }}
                       {{! template-lint-disable no-invalid-interactive}}
                       <a
+                        href="#"
+                        role="button"
+                        aria-expanded={{if this.isCatDescExpanded "true" "false"}}
+                        aria-controls="category-description-{{@category.id}}"
                         {{on "click" this.expandCategoryDescription}}
+                        {{on "keydown" this.handleToggleKeydown}}
                       >{{this.aboutTopicUrl}}</a>
                     {{else}}
                       <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
@@ -308,7 +355,12 @@ export default class CategoryHeader extends Component {
             }}
               {{! template-lint-disable no-invalid-interactive}}
               <a
+                href="#"
+                role="button"
+                aria-expanded={{if this.isCatDescExpanded "true" "false"}}
+                aria-controls="category-description-{{@category.id}}"
                 {{on "click" this.expandCategoryDescription}}
+                {{on "keydown" this.handleToggleKeydown}}
               >{{this.aboutTopicUrl}}</a>
             {{else}}
               <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
