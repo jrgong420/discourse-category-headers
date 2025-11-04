@@ -128,8 +128,8 @@ show_mobile:
 
 force_mobile_alignment:
   type: bool
-  default: true
-  description: "Force mobile alignment of logo-text to the top-centre of the header"
+  default: false
+  description: "Force mobile alignment of logo-text to the top-centre of the header (when false, maintains left-right layout on mobile)"
 
 hide_if_no_category_description:
   type: bool

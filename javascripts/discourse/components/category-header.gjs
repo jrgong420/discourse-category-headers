@@ -282,91 +282,94 @@ export default class CategoryHeader extends Component {
               />
             </div>
           {{/if}}
-          <div
-            class="category-title-name"
-            style={{unless this.logoImg "padding: 0 !important;"}}
-          >
-            {{#if this.ifParentCategory}}
-              <a class="parent-box-link" href={{@category.parentCategory.url}}>
-                {{#if this.ifParentProtected}}
-                  {{icon this.lockIcon}}
-                {{/if}}
-                <h1>{{@category.parentCategory.name}}: </h1>
-              </a>
-            {{/if}}
-            {{#if this.ifProtected}}
-              {{icon this.lockIcon}}
-            {{/if}}
-            <h1>{{@category.name}}</h1>
-          </div>
 
-          <div class="category-title-description">
-            {{#if (or this.showCatDesc this.showFullCatDesc)}}
-              <div
-                class="cooked"
-                id="category-description-{{@category.id}}"
-              >
-                {{#if this.showFullCatDesc}}
-                  {{htmlSafe this.full_cat_desc}}
-                {{else}}
-                  {{#if this.isCatDescExpanded}}
+          <div class="category-title-text-wrapper">
+            <div
+              class="category-title-name"
+              style={{unless this.logoImg "padding: 0 !important;"}}
+            >
+              {{#if this.ifParentCategory}}
+                <a class="parent-box-link" href={{@category.parentCategory.url}}>
+                  {{#if this.ifParentProtected}}
+                    {{icon this.lockIcon}}
+                  {{/if}}
+                  <h1>{{@category.parentCategory.name}}: </h1>
+                </a>
+              {{/if}}
+              {{#if this.ifProtected}}
+                {{icon this.lockIcon}}
+              {{/if}}
+              <h1>{{@category.name}}</h1>
+            </div>
+
+            <div class="category-title-description">
+              {{#if (or this.showCatDesc this.showFullCatDesc)}}
+                <div
+                  class="cooked"
+                  id="category-description-{{@category.id}}"
+                >
+                  {{#if this.showFullCatDesc}}
                     {{htmlSafe this.full_cat_desc}}
                   {{else}}
-                    {{htmlSafe this.catDesc}}
-                  {{/if}}
-                {{/if}}
-
-                {{#if this.inlineReadMore}}
-                  <span class="category-about-url">
-                    {{#if
-                      (and
-                        settings.expand_and_collapse_category_description
-                        this.showCatDesc
-                        (not this.showFullCatDesc)
-                      )
-                    }}
-                      {{! template-lint-disable no-invalid-interactive}}
-                      <a
-                        href="#"
-                        role="button"
-                        aria-expanded={{if this.isCatDescExpanded "true" "false"}}
-                        aria-controls="category-description-{{@category.id}}"
-                        {{on "click" this.expandCategoryDescription}}
-                        {{on "keydown" this.handleToggleKeydown}}
-                      >{{this.aboutTopicUrl}}</a>
+                    {{#if this.isCatDescExpanded}}
+                      {{htmlSafe this.full_cat_desc}}
                     {{else}}
-                      <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
+                      {{htmlSafe this.catDesc}}
                     {{/if}}
-                  </span>
+                  {{/if}}
+
+                  {{#if this.inlineReadMore}}
+                    <span class="category-about-url">
+                      {{#if
+                        (and
+                          settings.expand_and_collapse_category_description
+                          this.showCatDesc
+                          (not this.showFullCatDesc)
+                        )
+                      }}
+                        {{! template-lint-disable no-invalid-interactive}}
+                        <a
+                          href="#"
+                          role="button"
+                          aria-expanded={{if this.isCatDescExpanded "true" "false"}}
+                          aria-controls="category-description-{{@category.id}}"
+                          {{on "click" this.expandCategoryDescription}}
+                          {{on "keydown" this.handleToggleKeydown}}
+                        >{{this.aboutTopicUrl}}</a>
+                      {{else}}
+                        <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
+                      {{/if}}
+                    </span>
+                  {{/if}}
+                </div>
+              {{/if}}
+            </div>
+
+            {{#unless this.inlineReadMore}}
+              <div class="category-about-url">
+                {{#if
+                  (and
+                    settings.expand_and_collapse_category_description
+                    this.showCatDesc
+                    (not this.showFullCatDesc)
+                  )
+                }}
+                  {{! template-lint-disable no-invalid-interactive}}
+                  <a
+                    href="#"
+                    role="button"
+                    aria-expanded={{if this.isCatDescExpanded "true" "false"}}
+                    aria-controls="category-description-{{@category.id}}"
+                    {{on "click" this.expandCategoryDescription}}
+                    {{on "keydown" this.handleToggleKeydown}}
+                  >{{this.aboutTopicUrl}}</a>
+                {{else}}
+                  <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
                 {{/if}}
               </div>
-            {{/if}}
+            {{/unless}}
           </div>
         </div>
-
-        {{#unless this.inlineReadMore}}
-          <div class="category-about-url">
-            {{#if
-              (and
-                settings.expand_and_collapse_category_description
-                this.showCatDesc
-                (not this.showFullCatDesc)
-              )
-            }}
-              {{! template-lint-disable no-invalid-interactive}}
-              <a
-                href="#"
-                role="button"
-                aria-expanded={{if this.isCatDescExpanded "true" "false"}}
-                aria-controls="category-description-{{@category.id}}"
-                {{on "click" this.expandCategoryDescription}}
-                {{on "keydown" this.handleToggleKeydown}}
-              >{{this.aboutTopicUrl}}</a>
-            {{else}}
-              <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
-            {{/if}}
-          </div>
-        {{/unless}}
       </div>
     {{/if}}
   </template>
