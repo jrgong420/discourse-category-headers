@@ -13,7 +13,8 @@ export default class CategoryNotificationsWrapper extends Component {
       @levelId={{@category.notification_level}}
       @onChange={{this.onChange}}
       @showFullTitle={{false}}
-      @showCaret={{true}}
+      @showCaret={{false}}
+      @triggerClass="category-header-notifications-trigger"
     />
   </template>
 }

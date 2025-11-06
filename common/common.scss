@@ -244,6 +244,60 @@ div[class^="category-title-header"] {
   display: inline-flex;
   align-items: center;
   margin-left: var(--space-2);
+
+  // Ensure icon is visible and properly sized
+  .d-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+  }
+
+  // Restore visible color for icon-only button (core .btn.no-text may set color: transparent)
+  .btn.no-text {
+    color: inherit !important;
+    opacity: 1; // ensure not dimmed away
+  }
+
+  // Counteract core .btn.no-text font-size:0 collapsing em-sized icons
+  .btn.no-text .d-icon {
+    font-size: var(--font-0, 1rem);
+    width: 1.25em;
+    height: 1.25em;
+  }
+
+  // Ensure the FloatKit trigger we inject has explicit sizing so its SVG icon renders
+  .category-header-notifications-trigger {
+    color: inherit !important;
+    font-size: var(--font-0, 1rem);
+    padding: 0;
+    min-height: 1.75em;
+    min-width: 1.75em;
+    border: 0;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    .d-icon {
+      display: inline-flex;
+      width: 1.25em;
+      height: 1.25em;
+      color: inherit;
+      margin: 0;
+    }
+
+    &:focus-visible {
+      outline: var(--focus-outline, 2px solid var(--tertiary));
+      outline-offset: 2px;
+    }
+  }
+
+  // Hide chevron/caret icon (DMenu dropdown indicator)
+  .d-menu__caret,
+  [class*="caret"],
+  svg[class*="chevron"] {
+    display: none !important;
+  }
 }
 
 // Hide the default category notification button when our custom header is active
