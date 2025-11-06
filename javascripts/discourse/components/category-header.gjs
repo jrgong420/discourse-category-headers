@@ -19,6 +19,7 @@ export default class CategoryHeader extends Component {
   @service siteSettings;
   @service site;
   @service router;
+  @service currentUser;
 
   @tracked full_cat_desc;
   @tracked isCatDescExpanded = false;
@@ -200,27 +201,11 @@ export default class CategoryHeader extends Component {
     );
   }
 
-  get categoryNotificationsComponentName() {
-    if (!settings.show_category_follow_button) {
-      return null;
-    }
-
-    const entries = (window.requirejs && window.requirejs.entries) || {};
-
-    // Prefer the DMenu-powered tracking component (mobile opens modal)
-    const hasTracking =
-      entries["discourse/components/category-notifications-tracking"];
-    if (hasTracking) {
-      return "category-notifications-tracking";
-    }
-
-    // Fallback to legacy dropdown on very old installs
-    if (entries["select-kit/components/category-notifications-button"]) {
-      return "select-kit/components/category-notifications-button";
-    }
-
-    // No fallback - if DMenu component is not available, don't render bell
-    return null;
+  get shouldShowNotificationBell() {
+    return (
+      settings.show_category_follow_button &&
+      this.currentUser
+    );
   }
 
   get getHeaderStyle() {
@@ -399,16 +384,12 @@ export default class CategoryHeader extends Component {
               {{/if}}
               <h1>{{@category.name}}</h1>
 
-              {{#if settings.show_category_follow_button}}
-                {{#if this.categoryNotificationsComponentName}}
-                  <span class="category-notifications-wrap" {{on "click" this.logBellClick capture=true}}>
-                    <CategoryNotificationsWrapper
-                      @componentName={{this.categoryNotificationsComponentName}}
-                      @category={{@category}}
-                      @value={{@category.notification_level}}
-                    />
-                  </span>
-                {{/if}}
+              {{#if this.shouldShowNotificationBell}}
+                <span class="category-notifications-wrap" {{on "click" this.logBellClick capture=true}}>
+                  <CategoryNotificationsWrapper
+                    @category={{@category}}
+                  />
+                </span>
               {{/if}}
             </div>
 

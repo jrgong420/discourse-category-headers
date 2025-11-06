@@ -1,16 +1,19 @@
 import Component from "@glimmer/component";
+import { action } from "@ember/object";
+import CategoryNotificationsTracking from "discourse/components/category-notifications-tracking";
 
 export default class CategoryNotificationsWrapper extends Component {
-  get componentName() {
-    return this.args.componentName;
+  @action
+  onChange(level) {
+    this.args.category.setNotification(level);
   }
 
   <template>
-    {{component
-      this.componentName
-      category=@category
-      value=@value
-    }}
+    <CategoryNotificationsTracking
+      @levelId={{@category.notification_level}}
+      @onChange={{this.onChange}}
+      @showFullTitle={{false}}
+      @showCaret={{true}}
+    />
   </template>
 }
-
