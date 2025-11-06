@@ -207,10 +207,16 @@ export default class CategoryHeader extends Component {
 
     const entries = (window.requirejs && window.requirejs.entries) || {};
 
-    // Only use the modern DMenu-based dropdown (Discourse 3.5+)
-    // Desktop: popover, Mobile: modal
-    if (entries["discourse/components/category-notifications-dropdown"]) {
-      return "category-notifications-dropdown";
+    // Prefer the DMenu-powered tracking component (mobile opens modal)
+    const hasTracking =
+      entries["discourse/components/category-notifications-tracking"];
+    if (hasTracking) {
+      return "category-notifications-tracking";
+    }
+
+    // Fallback to legacy dropdown on very old installs
+    if (entries["select-kit/components/category-notifications-button"]) {
+      return "select-kit/components/category-notifications-button";
     }
 
     // No fallback - if DMenu component is not available, don't render bell
@@ -289,7 +295,10 @@ export default class CategoryHeader extends Component {
   _logNotifDecision(label) {
     try {
       const entries = (window.requirejs && window.requirejs.entries) || {};
-      const hasDMenuDropdown = !!entries["discourse/components/category-notifications-dropdown"];
+      const hasDMenuDropdown =
+        !!entries["discourse/components/category-notifications-tracking"];
+      const hasLegacy =
+        !!entries["select-kit/components/category-notifications-button"];
       const chosen = this.categoryNotificationsComponentName;
       const mobileView = this.site?.mobileView;
       const width = window.innerWidth;
@@ -301,6 +310,7 @@ export default class CategoryHeader extends Component {
         mobileView,
         width,
         hasDMenuDropdown,
+        hasLegacy,
         chosen,
         modalOpen: !!modal,
         fkMenuOpen: !!fkMenu,
