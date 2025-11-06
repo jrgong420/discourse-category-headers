@@ -13,6 +13,17 @@ show_full_category_description:
   default: false
   description: 'Show the full category description text<br>(The full text of the "About this category" topic)'
 
+title_text_size:
+  type: enum
+  default: normal
+  choices:
+    - smallest
+    - smaller
+    - normal
+    - larger
+    - largest
+  description: "Size of the category title (H1)"
+
 description_text_size:
   type: enum
   default: larger
@@ -166,3 +177,8 @@ read_less_link_text:
   type: string
   default: "Read less…"
   description: 'Custom text for the "Read less" link'
+
+show_category_follow_button:
+  type: bool
+  default: true
+  description: "Show the category follow/notification button inside the custom category header"
