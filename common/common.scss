@@ -237,3 +237,25 @@ div[class^="category-title-header"] {
 .category-about-url a {
   text-decoration: none;
 }
+
+
+// Category bell placement: style and fallback hide rules
+.category-title-name .category-notifications-wrap {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--space-2);
+}
+
+// Hide the default category notification button when our custom header is active
+body.ch-bell-relocated {
+  // Hide in default category heading (already hidden by this theme, but be explicit)
+  .category-heading [class*="category-notifications"] {
+    display: none !important;
+  }
+
+  // Hide the select-kit button that appears in the default position
+  .category-title-before .category-notifications-button,
+  .category-title-before [class*="category-notifications"] {
+    display: none !important;
+  }
+}

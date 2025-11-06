@@ -8,6 +8,9 @@ import { and, not, or } from "truth-helpers";
 import LightDarkImg from "discourse/components/light-dark-img";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
+import CategoryNotificationsWrapper from "./category-notifications-wrapper";
+import { schedule } from "@ember/runloop";
+
 
 // Cache for full category descriptions (keyed by category ID)
 const descriptionCache = new Map();
@@ -29,6 +32,9 @@ export default class CategoryHeader extends Component {
     }
     this._onPageChanged = this._onPageChanged.bind(this);
     this.router.on("routeDidChange", this._onPageChanged);
+
+    // Debug: log decision and environment after initial render
+    schedule("afterRender", () => this._logNotifDecision("init"));
   }
 
   willDestroy() {
@@ -45,6 +51,9 @@ export default class CategoryHeader extends Component {
     if (settings.show_full_category_description) {
       await this.getFullCatDesc();
     }
+
+    // Debug: log environment on route change
+    this._logNotifDecision("route");
   }
 
   get ifParentCategory() {
@@ -191,6 +200,23 @@ export default class CategoryHeader extends Component {
     );
   }
 
+  get categoryNotificationsComponentName() {
+    if (!settings.show_category_follow_button) {
+      return null;
+    }
+
+    const entries = (window.requirejs && window.requirejs.entries) || {};
+
+    // Only use the modern DMenu-based dropdown (Discourse 3.5+)
+    // Desktop: popover, Mobile: modal
+    if (entries["discourse/components/category-notifications-dropdown"]) {
+      return "category-notifications-dropdown";
+    }
+
+    // No fallback - if DMenu component is not available, don't render bell
+    return null;
+  }
+
   get getHeaderStyle() {
     const styles = [];
 
@@ -259,6 +285,68 @@ export default class CategoryHeader extends Component {
   }
 
   @action
+  // Debug: log DMenu component availability and state
+  _logNotifDecision(label) {
+    try {
+      const entries = (window.requirejs && window.requirejs.entries) || {};
+      const hasDMenuDropdown = !!entries["discourse/components/category-notifications-dropdown"];
+      const chosen = this.categoryNotificationsComponentName;
+      const mobileView = this.site?.mobileView;
+      const width = window.innerWidth;
+      const modal = document.querySelector(".d-modal.fk-d-menu-modal");
+      const fkMenu = document.querySelector(".fk-d-menu");
+      // eslint-disable-next-line no-console
+      console.debug("[CategoryHeader/Bell] decision", {
+        label,
+        mobileView,
+        width,
+        hasDMenuDropdown,
+        chosen,
+        modalOpen: !!modal,
+        fkMenuOpen: !!fkMenu,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[CategoryHeader/Bell] decision log error", e);
+    }
+  }
+
+  @action
+  logBellClick(e) {
+    try {
+      const targetCls = e?.target?.className;
+      // eslint-disable-next-line no-console
+      console.debug("[CategoryHeader/Bell] click", {
+        targetCls,
+        mobileView: this.site?.mobileView,
+        chosen: this.categoryNotificationsComponentName,
+      });
+
+      setTimeout(() => {
+        const modal = document.querySelector(".d-modal.fk-d-menu-modal");
+        const fkMenu = document.querySelector(".fk-d-menu");
+        // eslint-disable-next-line no-console
+        console.debug("[CategoryHeader/Bell] post-click state", {
+          modalOpen: !!modal,
+          fkMenuOpen: !!fkMenu,
+        });
+      }, 0);
+
+      setTimeout(() => {
+        const modal = document.querySelector(".d-modal.fk-d-menu-modal");
+        const fkMenu = document.querySelector(".fk-d-menu");
+        // eslint-disable-next-line no-console
+        console.debug("[CategoryHeader/Bell] post-click state (200ms)", {
+          modalOpen: !!modal,
+          fkMenuOpen: !!fkMenu,
+        });
+      }, 200);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[CategoryHeader/Bell] click log error", err);
+    }
+  }
+
   handleToggleKeydown(event) {
     // Support Enter and Space for keyboard accessibility
     if (event.key === "Enter" || event.key === " ") {
@@ -300,6 +388,18 @@ export default class CategoryHeader extends Component {
                 {{icon this.lockIcon}}
               {{/if}}
               <h1>{{@category.name}}</h1>
+
+              {{#if settings.show_category_follow_button}}
+                {{#if this.categoryNotificationsComponentName}}
+                  <span class="category-notifications-wrap" {{on "click" this.logBellClick capture=true}}>
+                    <CategoryNotificationsWrapper
+                      @componentName={{this.categoryNotificationsComponentName}}
+                      @category={{@category}}
+                      @value={{@category.notification_level}}
+                    />
+                  </span>
+                {{/if}}
+              {{/if}}
             </div>
 
             <div class="category-title-description">

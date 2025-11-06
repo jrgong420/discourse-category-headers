@@ -5,6 +5,15 @@
   }
 }
 
+// Mobile: ensure d-menu modal renders properly (not clipped by header overflow)
+@media (max-width: 768px) {
+  // Ensure d-menu modal has proper z-index and positioning
+  .d-modal.fk-d-menu-modal,
+  .fk-d-menu[data-identifier="notifications-tracking"] {
+    z-index: 1000;
+  }
+}
+
 // Optional: force stacked/centered layout on mobile (disabled by default)
 @if $force_mobile_alignment == "true" {
   .category-title-header {
