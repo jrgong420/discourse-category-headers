@@ -75,7 +75,11 @@ div[class^="category-title-header"] {
 
   .category-title-name,
   .category-title-description {
-    min-width: 0;
+min-width: 0;
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+    justify-content: space-between;
   }
 
   .category-title-name {
@@ -135,6 +139,23 @@ div[class^="category-title-header"] {
       $show_full_category_description ==
       "false"
     {
+      display: none;
+    }
+
+    // Excerpt and full description blocks
+    .category-description__excerpt {
+      // Excerpt is always visible when not in "always show full" mode
+      display: block;
+    }
+
+    .category-description__full {
+      // Full description appended below excerpt when expanded
+      display: block;
+      margin-top: var(--space-2);
+    }
+
+    // Hide excerpt when full description is shown
+    .category-description__excerpt:has(+ .category-description__full) {
       display: none;
     }
   }
@@ -299,6 +320,38 @@ div[class^="category-title-header"] {
     display: none !important;
   }
 }
+
+// Chevron toggle styling (icon-only button next to the bell)
+.category-title-name {
+  .category-desc-toggle {
+    display: inline-flex;
+    align-items: center;
+    margin-left: var(--space-2);
+  }
+
+  .category-desc-toggle__btn {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.75em;
+    min-width: 1.75em;
+
+    .d-icon {
+      width: 1.25em;
+      height: 1.25em;
+    }
+
+    &:focus-visible {
+      outline: var(--focus-outline, 2px solid var(--tertiary));
+      outline-offset: 2px;
+    }
+  }
+}
+
 
 // Hide the default category notification button when our custom header is active
 body.ch-bell-relocated {

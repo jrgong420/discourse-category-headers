@@ -182,3 +182,15 @@ show_category_follow_button:
   type: bool
   default: true
   description: "Show the category follow/notification button inside the custom category header"
+
+
+# UI control for category description toggling
+category_description_toggle_ui:
+  type: enum
+  default: "read_more_only"
+  choices:
+    - chevron_only
+    - read_more_only
+    - both
+    - none
+  description: "Choose how users can expand/collapse category descriptions: chevron icon, read-more link, both, or none"

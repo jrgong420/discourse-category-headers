@@ -9,8 +9,6 @@ import LightDarkImg from "discourse/components/light-dark-img";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import CategoryNotificationsWrapper from "./category-notifications-wrapper";
-import { schedule } from "@ember/runloop";
-
 
 // Cache for full category descriptions (keyed by category ID)
 const descriptionCache = new Map();
@@ -19,23 +17,22 @@ export default class CategoryHeader extends Component {
   @service siteSettings;
   @service site;
   @service router;
-  @service currentUser;
 
   @tracked full_cat_desc;
   @tracked isCatDescExpanded = false;
   @tracked isLoadingFullDesc = false;
 
+  currentCategoryId = null;
+  loadingCategoryId = null;
+
   constructor() {
     super(...arguments);
-    // Only fetch if show_full_category_description is enabled
+    this.syncCategoryDescriptionState();
     if (settings.show_full_category_description) {
       this.getFullCatDesc();
     }
     this._onPageChanged = this._onPageChanged.bind(this);
     this.router.on("routeDidChange", this._onPageChanged);
-
-    // Debug: log decision and environment after initial render
-    schedule("afterRender", () => this._logNotifDecision("init"));
   }
 
   willDestroy() {
@@ -45,16 +42,12 @@ export default class CategoryHeader extends Component {
 
   // eslint-disable-next-line no-unused-vars
   async _onPageChanged(transition) {
-    // Make descriptions collapsed on route change
-    this.isCatDescExpanded = false;
+    this.syncCategoryDescriptionState({ collapse: true });
 
     // Only fetch if show_full_category_description is enabled
     if (settings.show_full_category_description) {
       await this.getFullCatDesc();
     }
-
-    // Debug: log environment on route change
-    this._logNotifDecision("route");
   }
 
   get ifParentCategory() {
@@ -86,11 +79,12 @@ export default class CategoryHeader extends Component {
       return;
     }
 
-    // Prevent duplicate requests
-    if (this.isLoadingFullDesc) {
+    // Prevent duplicate requests for the same category
+    if (this.isLoadingFullDesc && this.loadingCategoryId === categoryId) {
       return;
     }
 
+    this.loadingCategoryId = categoryId;
     this.isLoadingFullDesc = true;
 
     try {
@@ -99,12 +93,17 @@ export default class CategoryHeader extends Component {
 
       // Cache the result
       descriptionCache.set(categoryId, fullDesc);
-      this.full_cat_desc = fullDesc;
+      if (this.currentCategoryId === categoryId) {
+        this.full_cat_desc = fullDesc;
+      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("Failed to load full category description:", e);
     } finally {
-      this.isLoadingFullDesc = false;
+      if (this.loadingCategoryId === categoryId) {
+        this.isLoadingFullDesc = false;
+        this.loadingCategoryId = null;
+      }
     }
   }
 
@@ -201,13 +200,6 @@ export default class CategoryHeader extends Component {
     );
   }
 
-  get shouldShowNotificationBell() {
-    return (
-      settings.show_category_follow_button &&
-      this.currentUser
-    );
-  }
-
   get getHeaderStyle() {
     const styles = [];
 
@@ -261,10 +253,33 @@ export default class CategoryHeader extends Component {
     );
   }
 
+  get showChevronToggle() {
+    const ui = settings.category_description_toggle_ui;
+    return ui === "chevron_only" || ui === "both";
+  }
+
+  get showReadMoreUI() {
+    const ui = settings.category_description_toggle_ui;
+    return ui === "read_more_only" || ui === "both";
+  }
+
+  get fullCatDescRemainder() {
+    if (!this.full_cat_desc || !this.catDesc) {
+      return null;
+    }
+    const full = this.full_cat_desc.trim();
+    const excerpt = this.catDesc.trim();
+    if (full.startsWith(excerpt)) {
+      return full.slice(excerpt.length).trim();
+    }
+    return null;
+  }
+
   @action
   async expandCategoryDescription(event) {
     if (settings.expand_and_collapse_category_description) {
       event?.preventDefault?.();
+      this.syncCategoryDescriptionState();
 
       // If expanding and we don't have the full description yet, fetch it
       if (!this.isCatDescExpanded && !this.full_cat_desc) {
@@ -275,73 +290,29 @@ export default class CategoryHeader extends Component {
     }
   }
 
-  @action
-  // Debug: log DMenu component availability and state
-  _logNotifDecision(label) {
-    try {
-      const entries = (window.requirejs && window.requirejs.entries) || {};
-      const hasDMenuDropdown =
-        !!entries["discourse/components/category-notifications-tracking"];
-      const hasLegacy =
-        !!entries["select-kit/components/category-notifications-button"];
-      const chosen = this.categoryNotificationsComponentName;
-      const mobileView = this.site?.mobileView;
-      const width = window.innerWidth;
-      const modal = document.querySelector(".d-modal.fk-d-menu-modal");
-      const fkMenu = document.querySelector(".fk-d-menu");
-      // eslint-disable-next-line no-console
-      console.debug("[CategoryHeader/Bell] decision", {
-        label,
-        mobileView,
-        width,
-        hasDMenuDropdown,
-        hasLegacy,
-        chosen,
-        modalOpen: !!modal,
-        fkMenuOpen: !!fkMenu,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn("[CategoryHeader/Bell] decision log error", e);
+  syncCategoryDescriptionState({ collapse = false } = {}) {
+    const categoryId = this.args.category?.id ?? null;
+    const categoryChanged = this.currentCategoryId !== categoryId;
+
+    if (categoryChanged) {
+      this.currentCategoryId = categoryId;
+      this.full_cat_desc = categoryId
+        ? descriptionCache.get(categoryId) ?? null
+        : null;
+    } else if (
+      categoryId &&
+      !this.full_cat_desc &&
+      descriptionCache.has(categoryId)
+    ) {
+      this.full_cat_desc = descriptionCache.get(categoryId);
+    }
+
+    if (collapse || categoryChanged) {
+      this.isCatDescExpanded = false;
     }
   }
 
   @action
-  logBellClick(e) {
-    try {
-      const targetCls = e?.target?.className;
-      // eslint-disable-next-line no-console
-      console.debug("[CategoryHeader/Bell] click", {
-        targetCls,
-        mobileView: this.site?.mobileView,
-        chosen: this.categoryNotificationsComponentName,
-      });
-
-      setTimeout(() => {
-        const modal = document.querySelector(".d-modal.fk-d-menu-modal");
-        const fkMenu = document.querySelector(".fk-d-menu");
-        // eslint-disable-next-line no-console
-        console.debug("[CategoryHeader/Bell] post-click state", {
-          modalOpen: !!modal,
-          fkMenuOpen: !!fkMenu,
-        });
-      }, 0);
-
-      setTimeout(() => {
-        const modal = document.querySelector(".d-modal.fk-d-menu-modal");
-        const fkMenu = document.querySelector(".fk-d-menu");
-        // eslint-disable-next-line no-console
-        console.debug("[CategoryHeader/Bell] post-click state (200ms)", {
-          modalOpen: !!modal,
-          fkMenuOpen: !!fkMenu,
-        });
-      }, 200);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn("[CategoryHeader/Bell] click log error", err);
-    }
-  }
-
   handleToggleKeydown(event) {
     // Support Enter and Space for keyboard accessibility
     if (event.key === "Enter" || event.key === " ") {
@@ -384,11 +355,29 @@ export default class CategoryHeader extends Component {
               {{/if}}
               <h1>{{@category.name}}</h1>
 
-              {{#if this.shouldShowNotificationBell}}
-                <span class="category-notifications-wrap" {{on "click" this.logBellClick capture=true}}>
-                  <CategoryNotificationsWrapper
-                    @category={{@category}}
-                  />
+              {{#if settings.show_category_follow_button}}
+                <span class="category-notifications-wrap">
+                  <CategoryNotificationsWrapper @category={{@category}} />
+                </span>
+              {{/if}}
+
+              {{#if (and
+                settings.expand_and_collapse_category_description
+                this.showCatDesc
+                (not this.showFullCatDesc)
+                this.showChevronToggle
+              )}}
+                <span class="category-desc-toggle">
+                  <button
+                    class="category-desc-toggle__btn"
+                    type="button"
+                    aria-expanded={{if this.isCatDescExpanded "true" "false"}}
+                    aria-controls="category-description-{{@category.id}}"
+                    {{on "click" this.expandCategoryDescription}}
+                    {{on "keydown" this.handleToggleKeydown}}
+                  >
+                    {{icon (if this.isCatDescExpanded "chevron-up" "chevron-down")}}
+                  </button>
                 </span>
               {{/if}}
             </div>
@@ -402,14 +391,17 @@ export default class CategoryHeader extends Component {
                   {{#if this.showFullCatDesc}}
                     {{htmlSafe this.full_cat_desc}}
                   {{else}}
-                    {{#if this.isCatDescExpanded}}
-                      {{htmlSafe this.full_cat_desc}}
-                    {{else}}
+                    <div class="category-description__excerpt">
                       {{htmlSafe this.catDesc}}
+                    </div>
+                    {{#if this.isCatDescExpanded}}
+                      <div class="category-description__full">
+                        {{htmlSafe (or this.fullCatDescRemainder this.full_cat_desc)}}
+                      </div>
                     {{/if}}
                   {{/if}}
 
-                  {{#if this.inlineReadMore}}
+                  {{#if (and this.inlineReadMore this.showReadMoreUI)}}
                     <span class="category-about-url">
                       {{#if
                         (and
@@ -436,7 +428,7 @@ export default class CategoryHeader extends Component {
               {{/if}}
             </div>
 
-            {{#unless this.inlineReadMore}}
+            {{#if (and (not this.inlineReadMore) this.showReadMoreUI)}}
               <div class="category-about-url">
                 {{#if
                   (and
@@ -458,7 +450,7 @@ export default class CategoryHeader extends Component {
                   <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
                 {{/if}}
               </div>
-            {{/unless}}
+            {{/if}}
           </div>
         </div>
       </div>

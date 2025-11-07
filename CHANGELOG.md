@@ -1,6 +1,32 @@
-# Changelog - Category Headers Theme Component v2.0.0
+# Changelog - Category Headers Theme Component
 
-## Overview
+## v2.3.0 - UX Improvement: Persistent Excerpt on Expansion
+
+### Fixed Category Description Expansion Behavior
+**Problem**: When users clicked the chevron icon or "Read more" link to expand the full category description, the excerpt (preview text) disappeared completely, making it harder to understand the context.
+
+**Solution**:
+- Modified the template to always render the excerpt when in toggle mode
+- Full description now appears below the excerpt when expanded, rather than replacing it
+- Matches Discourse's standard "Read More" pattern where preview text persists
+- Added smart de-duplication: if the full description starts with the excerpt text, only the remainder is shown to avoid redundancy
+- Added BEM-style classes (`.category-description__excerpt` and `.category-description__full`) for better styling control
+
+**User Experience**:
+- Excerpt remains visible throughout expand/collapse interaction
+- Full content appears below with appropriate spacing when expanded
+- Collapsing removes only the full content, keeping the excerpt visible
+- Works with all toggle UI modes: chevron icon, "Read more" link, or both
+
+**Files Changed**:
+- `javascripts/discourse/components/category-header.gjs`: Added `fullCatDescRemainder` getter and updated template (lines 247-259, 319-366)
+- `common/common.scss`: Added styling for excerpt and full description blocks (lines 145-155)
+
+---
+
+## v2.0.0 - Comprehensive Improvements
+
+### Overview
 This release includes comprehensive improvements addressing critical bugs, accessibility issues, performance optimizations, and modernization of the codebase following Discourse best practices.
 
 ---
