@@ -392,7 +392,7 @@ export default class CategoryHeader extends Component {
                     {{htmlSafe this.full_cat_desc}}
                   {{else}}
                     <div class="category-description__excerpt">
-                      {{htmlSafe this.catDesc}}
+                      <p>{{htmlSafe this.catDesc}}</p>
                     </div>
                     {{#if this.isCatDescExpanded}}
                       <div class="category-description__full">
