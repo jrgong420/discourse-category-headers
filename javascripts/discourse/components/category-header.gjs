@@ -8,6 +8,7 @@ import { and, not, or } from "truth-helpers";
 import LightDarkImg from "discourse/components/light-dark-img";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
+import { i18n } from "discourse-i18n";
 import CategoryNotificationsWrapper from "./category-notifications-wrapper";
 
 // Cache for full category descriptions (keyed by category ID)
@@ -123,10 +124,8 @@ export default class CategoryHeader extends Component {
       this.args.category.parentCategory.uploaded_logo
     ) {
       return this.args.category.parentCategory.uploaded_logo;
-    } else if (settings.show_site_logo && this.siteSettings.logo_small) {
-      let map = {};
-      map["url"] = this.siteSettings.logo_small;
-      return map;
+    } else if (settings.show_site_logo) {
+      return this._siteLogo();
     } else {
       return false;
     }
@@ -145,13 +144,23 @@ export default class CategoryHeader extends Component {
       this.args.category.parentCategory.uploaded_logo_dark
     ) {
       return this.args.category.parentCategory.uploaded_logo_dark;
-    } else if (settings.show_site_logo && this.siteSettings.logo_small) {
-      let map = {};
-      map["url"] = this.siteSettings.logo_small;
-      return map;
+    } else if (settings.show_site_logo) {
+      return this._siteLogo(true);
     } else {
-      return this.args.category.uploaded_logo; // If no dark mode logo is uploaded, use the normal logo
+      return this.logoImg; // If no dark mode logo is uploaded, use the normal logo/light fallback
     }
+  }
+
+  _siteLogo(preferDark = false) {
+    const lightUrl = this.siteSettings.logo_small;
+    const darkUrl = this.siteSettings.logo_small_dark;
+    const selectedUrl = preferDark ? darkUrl || lightUrl : lightUrl || darkUrl;
+
+    if (!selectedUrl) {
+      return false;
+    }
+
+    return { url: selectedUrl };
   }
 
   get ifParentProtected() {
@@ -261,6 +270,16 @@ export default class CategoryHeader extends Component {
   get showReadMoreUI() {
     const ui = settings.category_description_toggle_ui;
     return ui === "read_more_only" || ui === "both";
+  }
+
+  get chevronToggleAriaLabelKey() {
+    return this.isCatDescExpanded
+      ? "category_headers.desc_toggle_collapse"
+      : "category_headers.desc_toggle_expand";
+  }
+
+  get chevronToggleAriaLabel() {
+    return i18n(this.chevronToggleAriaLabelKey);
   }
 
   get fullCatDescRemainder() {
@@ -455,6 +474,7 @@ export default class CategoryHeader extends Component {
                     type="button"
                     aria-expanded={{if this.isCatDescExpanded "true" "false"}}
                     aria-controls="category-description-{{@category.id}}"
+                    aria-label={{this.chevronToggleAriaLabel}}
                     {{on "click" this.expandCategoryDescription}}
                     {{on "keydown" this.handleToggleKeydown}}
                   >
