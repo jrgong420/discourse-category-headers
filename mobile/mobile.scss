@@ -2,6 +2,54 @@
 .category-title-header {
   @media (max-width: 768px) {
     --category-header-logo-size: clamp(48px, 18vw, 96px);
+    // Reserve space for actions container (2 icon buttons + gap)
+    --ch-actions-reserve: clamp(60px, 16vw, 80px);
+  }
+
+  // Mobile: reduce header padding to create more room
+  @media (max-width: 768px) {
+    .category-title-contents {
+      padding: var(--space-3);
+    }
+  }
+
+  // Mobile: reserve space on right side of text wrapper to prevent title collision
+  @media (max-width: 768px) {
+    .category-title-text-wrapper {
+      padding-right: var(--ch-actions-reserve);
+    }
+  }
+
+  // Mobile: make actions container more compact
+  @media (max-width: 768px) {
+    .category-title-actions {
+      top: var(--space-2);
+      right: var(--space-2);
+      gap: var(--space-1);
+    }
+
+    // Slightly smaller buttons on mobile while maintaining tap targets
+    .category-notifications-wrap .category-header-notifications-trigger,
+    .category-desc-toggle__btn {
+      min-height: 1.5em;
+      min-width: 1.5em;
+
+      .d-icon {
+        width: 1.125em;
+        height: 1.125em;
+      }
+    }
+  }
+
+  // Mobile: ensure title text wraps properly to avoid collision with actions
+  @media (max-width: 768px) {
+    .category-title-name {
+      h1 {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+    }
   }
 }
 

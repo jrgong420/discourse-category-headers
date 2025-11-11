@@ -354,32 +354,6 @@ export default class CategoryHeader extends Component {
                 {{icon this.lockIcon}}
               {{/if}}
               <h1>{{@category.name}}</h1>
-
-              {{#if settings.show_category_follow_button}}
-                <span class="category-notifications-wrap">
-                  <CategoryNotificationsWrapper @category={{@category}} />
-                </span>
-              {{/if}}
-
-              {{#if (and
-                settings.expand_and_collapse_category_description
-                this.showCatDesc
-                (not this.showFullCatDesc)
-                this.showChevronToggle
-              )}}
-                <span class="category-desc-toggle">
-                  <button
-                    class="category-desc-toggle__btn"
-                    type="button"
-                    aria-expanded={{if this.isCatDescExpanded "true" "false"}}
-                    aria-controls="category-description-{{@category.id}}"
-                    {{on "click" this.expandCategoryDescription}}
-                    {{on "keydown" this.handleToggleKeydown}}
-                  >
-                    {{icon (if this.isCatDescExpanded "chevron-up" "chevron-down")}}
-                  </button>
-                </span>
-              {{/if}}
             </div>
 
             <div class="category-title-description">
@@ -452,6 +426,44 @@ export default class CategoryHeader extends Component {
               </div>
             {{/if}}
           </div>
+
+          {{#if (or
+            settings.show_category_follow_button
+            (and
+              settings.expand_and_collapse_category_description
+              this.showCatDesc
+              (not this.showFullCatDesc)
+              this.showChevronToggle
+            )
+          )}}
+            <div class="category-title-actions">
+              {{#if settings.show_category_follow_button}}
+                <span class="category-notifications-wrap">
+                  <CategoryNotificationsWrapper @category={{@category}} />
+                </span>
+              {{/if}}
+
+              {{#if (and
+                settings.expand_and_collapse_category_description
+                this.showCatDesc
+                (not this.showFullCatDesc)
+                this.showChevronToggle
+              )}}
+                <span class="category-desc-toggle">
+                  <button
+                    class="category-desc-toggle__btn"
+                    type="button"
+                    aria-expanded={{if this.isCatDescExpanded "true" "false"}}
+                    aria-controls="category-description-{{@category.id}}"
+                    {{on "click" this.expandCategoryDescription}}
+                    {{on "keydown" this.handleToggleKeydown}}
+                  >
+                    {{icon (if this.isCatDescExpanded "chevron-up" "chevron-down")}}
+                  </button>
+                </span>
+              {{/if}}
+            </div>
+          {{/if}}
         </div>
       </div>
     {{/if}}

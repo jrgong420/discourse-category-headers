@@ -15,6 +15,7 @@ div[class^="category-title-header"] {
   width: 100%;
   justify-content: center;
   overflow: hidden;
+  position: relative;
 
   @if $header_style == "box" {
     border: var(--category-header-border);
@@ -114,6 +115,16 @@ min-width: 0;
     }
   }
 
+  // Actions container (notification bell + chevron toggle) positioned top-right
+  .category-title-actions {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
   .category-title-description {
     max-width: var(--category-description-width);
 
@@ -127,11 +138,6 @@ min-width: 0;
       font-size: $font-up-4;
     } @else if $description_text_size == "largest" {
       font-size: $font-up-5;
-    }
-
-    a,
-    a:visited {
-      // color: inherit;
     }
 
     @if $show_category_description ==
@@ -261,10 +267,9 @@ min-width: 0;
 
 
 // Category bell placement: style and fallback hide rules
-.category-title-name .category-notifications-wrap {
+.category-title-actions .category-notifications-wrap {
   display: inline-flex;
   align-items: center;
-  margin-left: var(--space-2);
 
   // Ensure icon is visible and properly sized
   .d-icon {
@@ -322,11 +327,10 @@ min-width: 0;
 }
 
 // Chevron toggle styling (icon-only button next to the bell)
-.category-title-name {
+.category-title-actions {
   .category-desc-toggle {
     display: inline-flex;
     align-items: center;
-    margin-left: var(--space-2);
   }
 
   .category-desc-toggle__btn {
