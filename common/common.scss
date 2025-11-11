@@ -4,10 +4,9 @@ div[class^="category-title-header"] {
 
 .category-title-header {
   // Adopt Discourse core CSS variables for category headers
-  --category-header-logo-size: #{if($size_logo == "standard", 3rem, if($size_logo == "small", 2rem, auto))};
+  --category-header-logo-size: #{if($size_logo == "standard", 150px, if($size_logo == "small", 40px, auto))};
   --category-description-width: 760px;
   --category-header-border: 1px solid var(--content-border-color);
-
   box-sizing: border-box;
   display: block !important;
   margin-bottom: var(--space-6) !important;
@@ -76,7 +75,7 @@ div[class^="category-title-header"] {
 
   .category-title-name,
   .category-title-description {
-min-width: 0;
+    min-width: 0;
     display: flex;
     flex-direction: row;
     gap: var(--space-2);
@@ -105,6 +104,7 @@ min-width: 0;
       } @else if $title_text_size == "largest" {
         font-size: $font-up-5;
       }
+
       // For "normal": no font-size override -> preserves core default
     }
 
@@ -190,11 +190,13 @@ min-width: 0;
   }
 }
 
-// Logo container - grid placement
+// Logo container placement and sizing
 .category-title-contents .category-logo.aspect-image {
   display: flex;
   align-items: flex-start;
   margin: 0;
+  height: var(--category-header-logo-size);
+  width: auto;
 
   @if $position_logo == "top" {
     // stacked mode uses flex on parent; no grid placement
@@ -204,12 +206,6 @@ min-width: 0;
     // default: left
     grid-column: 1;
   }
-}
-
-// Logo sizing using Discourse core aspect-image pattern
-.category-title-contents .category-logo.aspect-image {
-  height: var(--category-header-logo-size);
-  width: auto;
 
   > img {
     display: block;
@@ -225,13 +221,12 @@ min-width: 0;
 @supports (--custom: property) {
   .category-title-contents .category-logo.aspect-image {
     @if $size_logo == "standard" {
-      --max-height: 3rem;
+      --max-height: 150px;
     } @else if $size_logo == "small" {
-      --max-height: 2rem;
+      --max-height: 40px;
     } @else {
       --max-height: auto;
     }
-
     height: auto;
 
     > img {
@@ -260,9 +255,20 @@ min-width: 0;
   }
 }
 
-// Remove the color override to use the default link color
+// Read more/read less link visibility + focus indication
 .category-about-url a {
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline, 2px solid var(--tertiary));
+    outline-offset: 2px;
+  }
 }
 
 

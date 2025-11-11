@@ -1,27 +1,28 @@
 // Mobile: scale logo size responsively while maintaining left-right layout
 .category-title-header {
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     --category-header-logo-size: clamp(48px, 18vw, 96px);
+
     // Reserve space for actions container (2 icon buttons + gap)
     --ch-actions-reserve: clamp(60px, 16vw, 80px);
   }
 
   // Mobile: reduce header padding to create more room
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .category-title-contents {
       padding: var(--space-3);
     }
   }
 
   // Mobile: reserve space on right side of text wrapper to prevent title collision
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .category-title-text-wrapper {
       padding-right: var(--ch-actions-reserve);
     }
   }
 
   // Mobile: make actions container more compact
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .category-title-actions {
       top: var(--space-2);
       right: var(--space-2);
@@ -42,7 +43,7 @@
   }
 
   // Mobile: ensure title text wraps properly to avoid collision with actions
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .category-title-name {
       h1 {
         white-space: normal;
@@ -54,7 +55,7 @@
 }
 
 // Mobile: ensure d-menu modal renders properly (not clipped by header overflow)
-@media (max-width: 768px) {
+@media (width <= 768px) {
   // Ensure d-menu modal has proper z-index and positioning
   .d-modal.fk-d-menu-modal {
     // Match core modal stacking so content stays above backdrop (z=1200)
