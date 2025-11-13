@@ -3,4 +3,8 @@ en:
     category_headers:
       desc_toggle_expand: "Expand category description"
       desc_toggle_collapse: "Collapse category description"
+      category_logo_alt: "Category logo"
+      parent_category_logo_alt: "Parent category logo"
+      site_logo_alt: "Site logo"
+      lock_icon_label: "Private category"
 

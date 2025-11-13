@@ -60,8 +60,9 @@ show_lock_icon:
   description: "Show the lock icon on categories protected by permissions"
 
 category_lock_icon:
+  type: string
   default: ""
-  description: "Enter the name of a FontAwesome 5 icon to display instead of the lock icon next to private categories"
+  description: "Enter the Font Awesome 5 icon name to display instead of the lock icon next to private categories"
 
 show_category_logo:
   type: bool
@@ -105,8 +106,7 @@ size_logo:
     - small
     - original
   description:
-    "Position of the logo within the header.<br>Small is 40px high similar to a sub
-    category box logo<br>Standard is 150px high<br>Original is the size of the image uploaded"
+    "Size of the logo in the header.<br>Small is ~40px high (similar to subcategory box logo)<br>Standard is ~150px high<br>Original is the uploaded image size"
 
 header_style:
   type: enum
@@ -115,7 +115,7 @@ header_style:
     - box
     - banner
     - none
-  description: "Set the header style to either:<br>Box, style as a box with the category background color as the left border<br>Banner, set the header background to the category background color and text to the forground color<br>None, no styling<"
+  description: "Set the header style:<br>Box: bordered container with category color as left border<br>Banner: filled background using category color and text color<br>None: no special styling"
 
 header_background_image:
   type: enum

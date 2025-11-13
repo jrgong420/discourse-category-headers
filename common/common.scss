@@ -27,6 +27,11 @@ div[class^="category-title-header"] {
     border: 0 !important; // Stylelint complains if 0px is used
   }
 
+  // Apply background image if set via CSS variable
+  background-image: var(--category-bg-image, none);
+  background-repeat: no-repeat;
+  background-position: center;
+
   @if $header_background_image == "cover" {
     background-size: cover;
   } @else if $header_background_image == "contain" {
@@ -96,16 +101,16 @@ div[class^="category-title-header"] {
       display: inline !important;
 
       @if $title_text_size == "smallest" {
-        font-size: $font-up-1;
+        font-size: $font-down-1;
       } @else if $title_text_size == "smaller" {
-        font-size: $font-up-2;
+        font-size: $font-0;
       } @else if $title_text_size == "larger" {
-        font-size: $font-up-4;
+        font-size: $font-up-2;
       } @else if $title_text_size == "largest" {
-        font-size: $font-up-5;
+        font-size: $font-up-3;
       }
 
-      // For "normal": no font-size override -> preserves core default
+      // For "normal": no font-size override -> preserves core default (typically $font-up-1)
     }
 
     svg {
@@ -243,20 +248,21 @@ div[class^="category-title-header"] {
   text-align: $text_align;
 
   @if $description_text_size == "smallest" {
-    font-size: $font-0;
+    font-size: $font-down-1;
   } @else if $description_text_size == "smaller" {
-    font-size: $font-up-2;
+    font-size: $font-0;
   } @else if $description_text_size == "normal" {
-    font-size: $font-up-3;
+    font-size: $font-up-1;
   } @else if $description_text_size == "larger" {
-    font-size: $font-up-4;
+    font-size: $font-up-2;
   } @else if $description_text_size == "largest" {
-    font-size: $font-up-5;
+    font-size: $font-up-3;
   }
 }
 
 // Read more/read less link visibility + focus indication
-.category-about-url a {
+.category-about-url a,
+.category-about-url__toggle {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
@@ -269,6 +275,16 @@ div[class^="category-title-header"] {
     outline: var(--focus-outline, 2px solid var(--tertiary));
     outline-offset: 2px;
   }
+}
+
+// Style toggle button to look like a link
+.category-about-url__toggle {
+  background: none;
+  border: none;
+  color: var(--tertiary);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
 }
 
 

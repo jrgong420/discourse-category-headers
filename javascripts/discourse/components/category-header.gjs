@@ -11,6 +11,7 @@ import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
 import CategoryNotificationsWrapper from "./category-notifications-wrapper";
 
+
 // Cache for full category descriptions (keyed by category ID)
 const descriptionCache = new Map();
 
@@ -274,12 +275,28 @@ export default class CategoryHeader extends Component {
 
   get chevronToggleAriaLabelKey() {
     return this.isCatDescExpanded
-      ? "category_headers.desc_toggle_collapse"
-      : "category_headers.desc_toggle_expand";
+      ? "js.category_headers.desc_toggle_collapse"
+      : "js.category_headers.desc_toggle_expand";
   }
 
   get chevronToggleAriaLabel() {
-    return i18n(this.chevronToggleAriaLabelKey);
+    return i18n(themePrefix(this.chevronToggleAriaLabelKey));
+  }
+
+  get logoAltText() {
+    if (this.args.category.uploaded_logo) {
+      return i18n(themePrefix("js.category_headers.category_logo_alt"));
+    } else if (
+      this.args.category.parentCategory?.uploaded_logo
+    ) {
+      return i18n(themePrefix("js.category_headers.parent_category_logo_alt"));
+    } else {
+      return i18n(themePrefix("js.category_headers.site_logo_alt"));
+    }
+  }
+
+  get lockIconAriaLabel() {
+    return i18n(themePrefix("js.category_headers.lock_icon_label"));
   }
 
   get fullCatDescRemainder() {
@@ -361,18 +378,24 @@ export default class CategoryHeader extends Component {
               class="category-title-name"
               style={{unless this.logoImg "padding: 0 !important;"}}
             >
-              {{#if this.ifParentCategory}}
-                <a class="parent-box-link" href={{@category.parentCategory.url}}>
-                  {{#if this.ifParentProtected}}
+              <h1>
+                {{#if this.ifParentCategory}}
+                  <a class="parent-box-link" href={{@category.parentCategory.url}}>
+                    {{#if this.ifParentProtected}}
+                      <span aria-label={{this.lockIconAriaLabel}} title={{this.lockIconAriaLabel}}>
+                        {{icon this.lockIcon}}
+                      </span>
+                    {{/if}}
+                    <span class="parent-category-name">{{@category.parentCategory.name}}:</span>
+                  </a>
+                {{/if}}
+                {{#if this.ifProtected}}
+                  <span aria-label={{this.lockIconAriaLabel}} title={{this.lockIconAriaLabel}}>
                     {{icon this.lockIcon}}
-                  {{/if}}
-                  <h1>{{@category.parentCategory.name}}: </h1>
-                </a>
-              {{/if}}
-              {{#if this.ifProtected}}
-                {{icon this.lockIcon}}
-              {{/if}}
-              <h1>{{@category.name}}</h1>
+                  </span>
+                {{/if}}
+                <span class="category-name">{{@category.name}}</span>
+              </h1>
             </div>
 
             <div class="category-title-description">
@@ -403,15 +426,13 @@ export default class CategoryHeader extends Component {
                           (not this.showFullCatDesc)
                         )
                       }}
-                        {{! template-lint-disable no-invalid-interactive}}
-                        <a
-                          href="#"
-                          role="button"
+                        <button
+                          type="button"
+                          class="category-about-url__toggle"
                           aria-expanded={{if this.isCatDescExpanded "true" "false"}}
                           aria-controls="category-description-{{@category.id}}"
                           {{on "click" this.expandCategoryDescription}}
-                          {{on "keydown" this.handleToggleKeydown}}
-                        >{{this.aboutTopicUrl}}</a>
+                        >{{this.aboutTopicUrl}}</button>
                       {{else}}
                         <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
                       {{/if}}
@@ -430,15 +451,13 @@ export default class CategoryHeader extends Component {
                     (not this.showFullCatDesc)
                   )
                 }}
-                  {{! template-lint-disable no-invalid-interactive}}
-                  <a
-                    href="#"
-                    role="button"
+                  <button
+                    type="button"
+                    class="category-about-url__toggle"
                     aria-expanded={{if this.isCatDescExpanded "true" "false"}}
                     aria-controls="category-description-{{@category.id}}"
                     {{on "click" this.expandCategoryDescription}}
-                    {{on "keydown" this.handleToggleKeydown}}
-                  >{{this.aboutTopicUrl}}</a>
+                  >{{this.aboutTopicUrl}}</button>
                 {{else}}
                   <a href={{@category.topic_url}}>{{this.aboutTopicUrl}}</a>
                 {{/if}}
